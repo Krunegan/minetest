@@ -1,0 +1,59 @@
+name: Build Minetest
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Compile Minetest
+    runs-on: ubuntu-latest
+
+    steps:
+      # Verifica el repositorio
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Instala las dependencias necesarias
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            cmake \
+            libirrlicht-dev \
+            libbz2-dev \
+            libjpeg-dev \
+            libpng-dev \
+            libsqlite3-dev \
+            libogg-dev \
+            libvorbis-dev \
+            libopenal-dev \
+            libcurl4-openssl-dev \
+            libfreetype6-dev \
+            zlib1g-dev \
+            libluajit-5.1-dev
+
+      # Crea el directorio de compilación y ejecuta CMake
+      - name: Configure with CMake
+        run: |
+          mkdir -p build
+          cd build
+          cmake .. -DRUN_IN_PLACE=TRUE
+
+      # Compila el proyecto
+      - name: Compile Minetest
+        run: |
+          cd build
+          make -j$(nproc)
+
+      # (Opcional) Guarda los artefactos del build
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: minetest-build
+          path: build/bin/
